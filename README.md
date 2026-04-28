@@ -1,468 +1,90 @@
-# How to Write Skills — AI Agent 生成 Skill 规范指南
+# how-skills
 
-本文档是 AI Agent 在生成技术研发相关 Skill 时必须遵循的规范。  
-目标：确保每一个生成的 Skill 都能被正确触发、输出一致、上下文高效，并且可复用、可组合。
+**how-skills** 是一个面向 AI Agent 的 Skill，用于帮助 Agent 生成高质量、符合规范的 `SKILL.md` 文件。
 
----
-
-## 一、Skill 文件结构
-
-每个 Skill 是一个 Markdown 文件（`SKILL.md`），位于独立目录中。  
-文件由两部分组成：**YAML Frontmatter**（元数据）和 **Markdown Body**（指令正文）。
-
-### 1.1 目录规范
-
-```
-skills/
-├── <skill-name>/
-│   ├── SKILL.md              ← 主文件（必须，≤ 500 行）
-│   ├── references/            ← 参考资料（可选）
-│   │   ├── conventions.md
-│   │   └── review-checklist.md
-│   ├── assets/                ← 模板 / 产物模板（可选）
-│   │   └── report-template.md
-│   └── scripts/               ← 辅助脚本（可选）
-│       └── helper.sh
-```
-
-**核心规则：**
-- `skill-name` 使用小写 + 连字符命名（如 `code-review`、`api-expert`）
-- `SKILL.md` 是唯一入口文件，必须存在
-- 大型参考资料放入 `references/`，模板放入 `assets/`，脚本放入 `scripts/`
-- 辅助文件只在需要时由 Agent 动态加载，不默认注入上下文
-
-### 1.2 YAML Frontmatter 规范
-
-```yaml
----
-name: <skill-name>             # 必填，与目录名一致
-description: <触发描述>         # 必填，详见第二节
-metadata:                       # 可选，补充元信息
-  pattern: <设计模式名>         # 如 tool-wrapper / generator / reviewer / inversion / pipeline
-  domain: <技术领域>            # 如 fastapi / react / python
-  output-format: <输出格式>     # 如 markdown / json / checklist
-  interaction: <交互模式>       # 如 single-turn / multi-turn
-  steps: <步骤数>              # pipeline 模式时标注
----
-```
+当你需要为 Claude Code、Gemini CLI、Cursor 等 AI 开发工具创建新技能时，使用 `/how-skills` 让 Agent 引导你完成整个设计流程——从需求确认到自检输出，确保每个生成的 Skill 都符合最佳实践。
 
 ---
 
-## 二、Description 编写规范（最关键的字段）
+## 这个 Skill 能做什么
 
-Description 决定 Agent **何时**触发此 Skill。它不只是说明"做什么"，必须同时说明"什么时候用"和"哪些关键词触发"。
+- 📋 **需求访谈**：通过结构化提问收集 Skill 的核心功能、设计模式和目标领域
+- ✍️ **生成 Frontmatter**：编写包含触发词、使用场景、元数据的标准 YAML 头部
+- 🏗️ **编写指令正文**：按规范生成角色定位、先读取步骤、执行步骤、输出格式、Out of Scope 六段结构
+- ✅ **自动自检**：对照 Anti-Patterns 清单验证，命中 3 条以上自动修改
+- 📦 **拆分建议**：超过 200 行时自动给出 `references/`、`assets/` 拆分方案
 
-### 2.1 必须包含的三要素
+支持五种设计模式：**Tool Wrapper**、**Generator**、**Reviewer**、**Inversion**、**Pipeline**，以及模式组合。
 
-| 要素 | 说明 | 示例 |
-|------|------|------|
-| **做什么** | Skill 的核心功能 | 审查代码质量 |
-| **何时用** | 典型使用场景 | 审查 PR、检查代码质量、分析 diff 时 |
-| **触发词** | Agent 匹配的关键词（≥ 3 个） | "review"、"PR"、"code quality"、"best practices" |
+---
 
-### 2.2 格式要求
+## 安装
 
-- **长度**：≥ 50 字符，不得过短
-- **前 250 字符**：必须包含核心用例描述（这是 Agent 上下文预算中实际读取的部分）
-- **视角一致**：使用第三人称描述功能，避免混用 "I help" / "You can use this"
-- **语言**：与 Skill 正文保持一致（中文项目用中文，英文项目用英文）
+### 方式一：使用 npx skills CLI（推荐）
 
-### 2.3 正反对比
+```bash
+# 安装到当前项目（.claude/skills/）
+npx skills add cola-sk/how-skills
 
-❌ **错误写法：**
-```yaml
-description: 代码审查工具
+# 安装到全局（~/.claude/skills/，适用于所有项目）
+npx skills add cola-sk/how-skills --global
 ```
 
-✅ **正确写法：**
-```yaml
-description: 审查代码中的 Bug、安全漏洞和可维护性问题。在审查 Pull Request、检查代码质量、分析 diff 时使用，或当用户提到"review"、"审查"、"PR"、"代码质量"、"最佳实践"时触发。
+### 方式二：手动安装
+
+```bash
+# 克隆仓库并复制到 Agent 的 skills 目录
+git clone https://github.com/cola-sk/how-skills.git
+cp -r how-skills ~/.claude/skills/how-skills
+```
+
+安装后重启 Agent 会话即可生效。
+
+---
+
+## 使用方式
+
+安装后，在 Claude Code / Gemini CLI 等支持 Skills 的 Agent 中：
+
+```
+/how-skills
+```
+
+Agent 会按以下流水线引导你：
+
+```
+Step 1 → 需求确认（核心功能 / 设计模式 / 技术领域 / 输出格式）
+Step 2 → 编写 YAML Frontmatter（含 description 三要素检查）
+Step 3 → 编写指令正文（6 段固定结构）
+Step 4 → 自检（Anti-Patterns 清单）
+Step 5 → 输出 SKILL.md + 拆分建议 + 摘要表格
+```
+
+也可以直接描述需求，Agent 会自动识别触发：
+
+```
+帮我写一个 FastAPI 代码审查的 skill
+生成一个用来写技术报告的 skill
+创建一个需求访谈 skill
 ```
 
 ---
 
-## 三、指令正文编写规范
+## Skill 规范文档
 
-### 3.1 使用祈使语气，禁止对话式表达
+完整的 Skill 编写规范存放于 [`references/spec.md`](references/spec.md)，涵盖：
 
-Skill 是**指令**，不是对话。使用祈使动词，直接下达命令。
-
-❌ **错误（对话式）：**
-```
-你能不能帮忙检查一下代码？看看有没有什么 bug？
-```
-
-✅ **正确（指令式）：**
-```
-审查当前 diff。检查以下问题：
-1. 安全漏洞（OWASP Top 10）
-2. 性能问题（N+1 查询、阻塞调用）
-3. 代码风格违规
-
-输出为带严重等级的检查清单。
-```
-
-### 3.2 必须指定输出格式
-
-没有输出格式 → Agent 每次输出结构不同 → Skill 不可复用。
-
-**必须明确定义：**
-- 输出的整体结构（标题、分节、列表）
-- 关键字段的约束（类型枚举、字符上限、大小写规则）
-- 示例格式（如有必要，提供一个完整示例）
-
-✅ **示例：**
-```
-生成 commit message，严格遵循以下格式：
-
-type(scope): 简短描述
-
-- 变更内容说明
-- 变更原因说明（如非显而易见）
-
-type 必须为以下之一：feat, fix, refactor, docs, test, chore
-scope 为受影响的模块名
-简短描述：≤ 50 字符，现在时态，小写字母开头
-```
-
-### 3.3 必须包含"先读取"步骤
-
-**这是区分高质量 Skill 和低质量 Skill 的关键。** Agent 不应假设自己了解当前项目，必须先阅读上下文。
-
-✅ **标准"先读取"模板：**
-```
-在开始操作之前：
-1. 阅读目标文件，理解函数签名和类型
-2. 找到现有的测试目录，阅读 1-2 个已有测试文件
-3. 识别当前使用的测试框架（Jest / Vitest / Pytest 等）
-4. 记录导入风格和断言模式
-
-然后再开始执行具体任务。匹配已有项目的风格和模式。
-```
-
-### 3.4 必须定义"不做什么"（Out of Scope）
-
-显式列出超出范围的事项，防止 Agent 尝试并失败，提升路由准确性。
-
-✅ **示例：**
-```
-## 不在范围内
-
-此 Skill 不处理以下场景：
-- 不推送到远端仓库（请使用 /push 或手动 git push）
-- 不创建 Pull Request（请使用 /pr skill）
-- 不合并分支
-- 不处理加密文件
-```
-
-### 3.5 步骤必须编号
-
-所有操作步骤使用**有序编号列表**，不使用无序列表。这确保 Agent 按固定顺序执行，减少跳步或遗漏。
+- Skill 文件结构与目录规范
+- Description 三要素编写方法
+- 五种设计模式详解（含代码示例）
+- 质量红线与 Anti-Patterns 检查清单
+- 完整示例：`/commit` Skill
 
 ---
 
-## 四、五种设计模式
+## 参考资料
 
-根据 Skill 的用途，选择最合适的设计模式。不同模式解决不同问题。
+本 Skill 基于以下文章的最佳实践提炼：
 
-### 4.1 Tool Wrapper（工具包装器）
-
-**适用场景：** 为特定技术/框架/库提供专家级知识  
-**核心机制：** 将内部文档/约定打包为可按需加载的参考资料  
-
-**结构要点：**
-- `references/` 目录存放约定文档（如 `conventions.md`）
-- 指令中明确标注"何时加载"参考资料
-- 分为"审查代码"和"编写代码"两个工作流
-
-```
-## 审查代码时
-1. 加载 'references/conventions.md'
-2. 逐条对照用户代码检查
-3. 对每个违规项，引用具体规则并建议修复方案
-
-## 编写代码时
-1. 加载 'references/conventions.md'
-2. 严格遵循每条约定
-3. 所有函数签名添加类型注解
-```
-
-### 4.2 Generator（生成器）
-
-**适用场景：** 生成结构化文档，要求每次输出格式一致  
-**核心机制：** 模板 + 风格指南 + 填充流程  
-
-**结构要点：**
-- `assets/` 存放输出模板
-- `references/` 存放风格指南
-- 指令按步骤编排：加载模板 → 加载风格 → 收集缺失信息 → 填充 → 输出
-
-```
-Step 1: 加载 'references/style-guide.md' 获取语气和格式规则
-Step 2: 加载 'assets/report-template.md' 获取输出结构
-Step 3: 向用户询问缺失信息（主题、关键数据、目标受众）
-Step 4: 按照风格指南填充模板，模板中的每个章节都必须出现在输出中
-Step 5: 以单一 Markdown 文档形式返回
-```
-
-### 4.3 Reviewer（审查器）
-
-**适用场景：** 按照检查清单对代码/文档进行系统性审查  
-**核心机制：** 将"检查什么"与"如何检查"分离，检查标准存于外部文件  
-
-**结构要点：**
-- `references/review-checklist.md` 存放审查标准
-- 输出按严重级别分组：error（必须修复）> warning（应当修复）> info（建议）
-- 更换不同 checklist 即可实现不同类型审查（代码风格 / 安全审计 / 性能检查）
-
-```
-Step 1: 加载 'references/review-checklist.md'
-Step 2: 仔细阅读用户代码，理解其目的
-Step 3: 逐条应用检查清单。对每个违规项：
-  - 标注行号（或近似位置）
-  - 分类严重级别：error / warning / info
-  - 解释为什么有问题，而不仅仅是什么有问题
-  - 建议具体修复方案并给出修正后的代码
-Step 4: 输出结构化审查报告：
-  - 摘要：代码功能、整体质量评估
-  - 发现：按严重级别分组（error 优先）
-  - 评分：1-10 分并附简要说明
-  - Top 3 建议：最有影响力的改进措施
-```
-
-### 4.4 Inversion（反转模式）
-
-**适用场景：** Agent 需要先充分了解需求再行动（复杂规划、系统设计）  
-**核心机制：** 反转控制流，Agent 变成采访者，按阶段提问，收集完信息才执行  
-
-**结构要点：**
-- 多阶段提问，每阶段有明确的问题列表
-- **必须包含硬性门控指令**：`在所有阶段完成前，禁止开始构建或设计`
-- 每次只问一个问题，等待用户回答后再继续
-- 综合阶段加载模板，基于收集的信息生成产物
-
-```
-你正在进行一次结构化需求访谈。在所有阶段完成前，禁止开始构建或设计。
-
-## 阶段 1 — 问题发现（每次问一个问题，等待回答）
-- Q1: "这个项目为用户解决什么问题？"
-- Q2: "主要用户是谁？他们的技术水平如何？"
-- Q3: "预期规模是多少？（日活用户、数据量、请求频率）"
-
-## 阶段 2 — 技术约束（仅在阶段 1 全部回答后开始）
-- Q4: "部署环境是什么？"
-- Q5: "有技术栈的要求或偏好吗？"
-- Q6: "不可妥协的需求是什么？（延迟、可用性、合规、预算）"
-
-## 阶段 3 — 综合（仅在所有问题回答后开始）
-1. 加载 'assets/plan-template.md'
-2. 用收集到的需求填充模板
-3. 呈现给用户确认，根据反馈迭代
-```
-
-### 4.5 Pipeline（流水线）
-
-**适用场景：** 复杂任务，不允许跳步或省略验证  
-**核心机制：** 严格顺序执行 + 硬性检查点（Diamond Gate），每步必须通过才能继续  
-
-**结构要点：**
-- 步骤间有明确的门控条件（如"用户确认后才进入下一步"）
-- 不同步骤按需加载不同参考文件，保持上下文干净
-- 明确标注总步骤数
-
-```
-按顺序执行以下步骤。不得跳步，步骤失败时不得继续。
-
-## Step 1 — 解析与盘点
-分析代码，提取所有公共类、函数、常量，呈现为清单。
-询问："这是你希望文档化的完整公共 API 吗？"
-
-## Step 2 — 生成文档注释
-加载 'references/docstring-style.md'，为缺少文档的函数生成注释。
-呈现每个生成的注释供用户审批。
-⛔ 在用户确认前，禁止进入 Step 3。
-
-## Step 3 — 组装文档
-加载 'assets/api-doc-template.md'，将所有内容编译为 API 参考文档。
-
-## Step 4 — 质量检查
-对照 'references/quality-checklist.md' 验证：
-- 每个公共符号已文档化
-- 每个参数有类型和描述
-- 每个函数至少一个使用示例
-报告结果，修复问题后呈现最终文档。
-```
-
----
-
-## 五、模式选择决策树
-
-```
-你需要 Skill 做什么？
-│
-├─ 为特定技术/框架提供专家知识？
-│  → Tool Wrapper
-│
-├─ 每次生成结构一致的文档/代码？
-│  → Generator
-│
-├─ 对代码/文档进行系统性检查评分？
-│  → Reviewer
-│
-├─ 需要先充分了解需求才能行动？
-│  → Inversion
-│
-├─ 复杂多步骤任务，不允许跳步？
-│  → Pipeline
-│
-└─ 以上多种需求组合？
-   → 组合使用（如 Pipeline + Reviewer 做最后质量检查）
-```
-
-> **模式可以组合：** Pipeline 可以在最后一步嵌入 Reviewer 来自检；Generator 可以在开头使用 Inversion 来收集变量。按需组合，不要强行套用单一模式。
-
----
-
-## 六、质量红线（必须遵守）
-
-### 6.1 SKILL.md 长度限制
-
-| 等级 | 行数 | 说明 |
-|------|------|------|
-| ✅ 推荐 | ≤ 200 行 | 默认加载，高效执行 |
-| ⚠️ 可接受 | 200–500 行 | 仍在预算内，注意聚焦 |
-| ❌ 禁止 | > 500 行 | 必须拆分 |
-
-**超长 Skill 的拆分方式（渐进式披露）：**
-```
-SKILL.md（≤ 200 行，始终加载）
-├── ADVANCED_PATTERNS.md（按需加载）
-├── REFERENCE.md（引用时加载）
-└── EXAMPLES.md（需要示例时加载）
-```
-
-在 `SKILL.md` 中引用辅助文件：
-```
-对于复杂表单处理，参见 [FORMS.md](FORMS.md)
-完整 API 参考，参见 [REFERENCE.md](REFERENCE.md)
-更多示例，参见 [EXAMPLES.md](EXAMPLES.md)
-```
-
-### 6.2 Anti-Patterns 检查清单
-
-生成 Skill 后，必须逐条自检，确保不存在以下问题：
-
-**Description 常见错误：**
-- [ ] Description < 50 字符
-- [ ] 没有触发关键词（< 3 个）
-- [ ] 没有使用场景描述
-- [ ] 视角不一致（混用"我"/"你"/"该工具"）
-
-**正文常见错误：**
-- [ ] 使用对话式语气而非祈使语气
-- [ ] 没有指定输出格式
-- [ ] 没有"先读取"步骤
-- [ ] 没有 Out of Scope 章节
-- [ ] 超过 500 行
-
-**设计常见错误：**
-- [ ] 一个 Skill 试图做 5 件不同的事（应拆分）
-- [ ] 硬编码为特定项目细节（应参数化/外部化）
-- [ ] 步骤使用无序列表而非有序列表
-
-> 如果命中上述 3 条及以上，必须修改后再输出。
-
----
-
-## 七、完整示例：/commit Skill
-
-以下示例综合运用了所有规范，可作为标准参考：
-
-```markdown
----
-name: commit
-description: 从当前变更创建结构化 git commit。当用户说"commit"、"提交"、"保存更改"、"提交代码"时使用，或在完成一个功能后使用。将变更拆分为逻辑单元并生成清晰的 commit message。
-metadata:
-  pattern: generator
-  output-format: git-commit
----
-
-从当前 git 状态创建 commit。
-
-## 执行流程
-
-1. 运行 `git status` 和 `git diff` 查看所有变更
-2. 将相关变更分组为逻辑单元（一个功能 = 一个 commit）
-3. 为每个单元生成 commit message，格式如下：
-
-   type(scope): 简短描述
-
-   - 变更了什么
-   - 为什么变更（如非显而易见）
-
-4. 分别暂存并提交每个单元（`git add` → `git commit`）
-5. 显示摘要："已创建 N 个 commit：[标题列表]"
-
-## 规则
-
-- type 必须为：feat, fix, refactor, docs, test, chore
-- 描述 ≤ 50 字符，小写，现在时态
-- 要点简洁，无废话
-- 禁止将无关变更合并为一个 commit
-
-## 不在范围内
-
-- 推送到远端（使用 /push 或手动 git push）
-- 创建 PR（使用 /pr skill）
-- 合并分支
-```
-
----
-
-## 八、生成 Skill 的标准流程
-
-当 AI Agent 需要生成一个新 Skill 时，按以下步骤执行：
-
-### Step 1 — 确认需求
-明确以下信息：
-- Skill 的核心功能是什么？
-- 属于哪种设计模式？（参考第四节决策树）
-- 目标用户是谁？技术领域是什么？
-- 是否需要外部参考文件或模板？
-
-### Step 2 — 编写 YAML Frontmatter
-- 填写 `name` 和 `description`
-- 确保 description 包含三要素（做什么 + 何时用 + 触发词）
-- 按需添加 `metadata`
-
-### Step 3 — 编写指令正文
-按以下结构组织正文：
-
-```
-1. 角色定位（一句话说明 Agent 扮演的角色）
-2. 先读取步骤（了解项目上下文）
-3. 核心执行步骤（有序编号，祈使语气）
-4. 输出格式定义（明确结构和约束）
-5. 规则/约束条件
-6. 不在范围内（Out of Scope）
-```
-
-### Step 4 — 自检
-对照第六节 Anti-Patterns 检查清单逐条检查。
-
-### Step 5 — 拆分（如需要）
-如果正文超过 200 行，将参考资料、模板、示例拆分到 `references/` 和 `assets/` 目录。
-
----
-
-## 九、关键原则总结
-
-| # | 原则 | 要点 |
-|---|------|------|
-| 1 | Description 决定触发 | 写清做什么 + 何时用 + 触发词，前 250 字符最关键 |
-| 2 | 指令式而非对话式 | 祈使动词 + 编号步骤 + 明确输出格式 |
-| 3 | 先读后做 | 永远让 Agent 先阅读项目上下文再行动 |
-| 4 | 明确边界 | Out of Scope 防止 Agent 尝试并失败 |
-| 5 | 控制长度 | SKILL.md ≤ 500 行，推荐 ≤ 200 行，超长必须拆分 |
-| 6 | 选对模式 | 根据用途选择 5 种模式之一，或组合使用 |
-| 7 | 自检后输出 | 每次生成后对照 Anti-Patterns 清单自检 |
+- [The Anatomy of a Perfect Skill](references/The%20Anatomy%20of%20a%20Perfect%20Skill%20原文.md) — 从 100 个优秀案例反向工程出的 6 种核心模式
+- [5 Agent Skill design patterns every ADK developer should know](references/5%20Agent%20Skill%20design%20patterns%20every%20ADK%20developer%20should%20know%20原文.md) — Tool Wrapper、Generator、Reviewer、Inversion、Pipeline 五种设计模式详解
