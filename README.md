@@ -86,5 +86,5 @@ Step 5 → 输出 SKILL.md + 拆分建议 + 摘要表格
 
 本 Skill 基于以下文章的最佳实践提炼：
 
-- [The Anatomy of a Perfect Skill](references/The%20Anatomy%20of%20a%20Perfect%20Skill%20原文.md) — 从 100 个优秀案例反向工程出的 6 种核心模式
-- [5 Agent Skill design patterns every ADK developer should know](references/5%20Agent%20Skill%20design%20patterns%20every%20ADK%20developer%20should%20know%20原文.md) — Tool Wrapper、Generator、Reviewer、Inversion、Pipeline 五种设计模式详解
+- [The Anatomy of a Perfect Skill](papers/The%20Anatomy%20of%20a%20Perfect%20Skill%20原文.md) — 从 100 个优秀案例反向工程出的 6 种核心模式
+- [5 Agent Skill design patterns every ADK developer should know](papers/5%20Agent%20Skill%20design%20patterns%20every%20ADK%20developer%20should%20know%20原文.md) — Tool Wrapper、Generator、Reviewer、Inversion、Pipeline 五种设计模式详解
