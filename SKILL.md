@@ -14,7 +14,10 @@ metadata:
 ## 先读取 — 加载规范
 
 在开始任何操作前：
-1. 阅读 'references/spec.md' 获取完整的 Skill 编写规范
+1. 阅读 'references/spec.md'，重点关注：
+   - 第二节（Description 编写规范）
+   - 第四节中用户选定模式对应的小节
+   - 第六节（质量红线与 Anti-Patterns）
 2. 如果用户指定了技术领域，阅读该领域的现有 Skill 文件（如有），记录已有风格和模式
 3. 确认当前项目的 Skill 目录结构和命名约定
 
@@ -27,16 +30,18 @@ metadata:
 向用户确认以下信息（如用户未提供，逐条询问）：
 
 1. **核心功能**：这个 Skill 要做什么？（一句话描述）
-2. **设计模式**：属于以下哪种模式？
+2. **适用范围**：项目级（仅当前项目生效）还是用户级（所有项目通用）？默认为项目级
+3. **设计模式**：属于以下哪种模式？
    - Tool Wrapper — 为特定技术/框架提供专家知识
    - Generator — 每次生成结构一致的文档/代码
    - Reviewer — 对代码/文档进行系统性检查评分
    - Inversion — 先充分了解需求再行动
    - Pipeline — 复杂多步骤任务，不允许跳步
    - 组合模式 — 以上多种的组合（标注组合方式）
-3. **技术领域**：涉及什么技术栈？（如 FastAPI、React、Python 等）
-4. **输出格式**：期望的产物格式？（如 markdown、json、checklist、代码文件）
-5. **辅助文件**：是否需要 references/、assets/、scripts/ 目录中的外部文件？
+   - 如果用户不确定，根据核心功能描述自动判断最合适的模式或组合，并向用户说明选择理由
+4. **技术领域**（可选）：涉及什么技术栈？如不限定特定技术，可留空，Skill 将保持技术无关
+5. **输出格式**：期望的产物格式？（如 markdown、json、checklist、代码文件）
+6. **辅助文件**：是否需要 references/、assets/、scripts/ 目录中的外部文件？
 
 ⛔ 在以上信息全部明确前，禁止开始编写 SKILL.md。
 
@@ -51,8 +56,9 @@ metadata:
 name: <skill-name>             # 小写 + 连字符，与目录名一致
 description: <触发描述>         # 必须包含三要素（见下方规则）
 metadata:
+  scope: <project 或 user>     # 项目级 or 用户级，默认 project
   pattern: <设计模式名>
-  domain: <技术领域>
+  domain: <技术领域>            # 可选，技术无关时省略此字段
   output-format: <输出格式>
   interaction: <single-turn 或 multi-turn>
 ---
@@ -74,6 +80,8 @@ metadata:
 - 使用第三人称视角，禁止混用"我"/"你"/"该工具"
 - 语言与正文保持一致
 
+⛔ 将生成的 Frontmatter 呈现给用户确认。在用户确认 description 和 metadata 正确前，禁止进入 Step 3。
+
 ---
 
 ## Step 3 — 编写指令正文
@@ -86,6 +94,14 @@ metadata:
 
 ### 3.2 先读取步骤
 
+根据 Step 1 选定的模式，先读取的重点不同：
+- **Tool Wrapper**：重点读 `references/conventions.md`（技术约定）
+- **Generator**：重点读 `assets/` 模板 + `references/` 风格指南
+- **Reviewer**：重点读 `references/review-checklist.md`（检查清单）
+- **Inversion**：重点读目标项目上下文，准备提问
+- **Pipeline**：重点读各步骤依赖的参考文件
+
+通用模板：
 ```
 在开始操作之前：
 1. 阅读 [需要阅读的文件/上下文]
@@ -102,6 +118,7 @@ metadata:
 - 使用**有序编号列表**（禁止无序列表）
 - 每步一个明确动作
 - 如使用 Pipeline 模式，在关键步骤间插入门控条件：`⛔ 在用户确认前，禁止进入下一步。`
+- 根据 Step 1 确定的设计模式，参考 'references/spec.md' 第四节中对应模式的结构模板编写核心步骤
 
 ### 3.4 输出格式定义
 
@@ -136,6 +153,7 @@ metadata:
 
 ### Description 检查
 - [ ] ≥ 50 字符
+- [ ] 前 250 字符包含核心用例
 - [ ] 包含 ≥ 3 个触发关键词
 - [ ] 包含使用场景描述
 - [ ] 视角一致（第三人称）
@@ -200,4 +218,4 @@ metadata:
 - 不执行生成的 Skill（仅生成 SKILL.md 文件，不运行）
 - 不管理 Skill 的版本控制（请使用 git 手动管理）
 - 不部署或分发 Skill（请手动复制到目标目录）
-- 不修改已有 Skill（如需修改，请直接编辑对应 SKILL.md）
+- 不自动覆盖已有 Skill（如需修改已有 Skill，请明确指出目标文件路径，将按相同规范审查并建议修改）
