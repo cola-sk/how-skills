@@ -31,14 +31,14 @@ metadata:
 
 1. **核心功能**：这个 Skill 要做什么？（一句话描述）
 2. **适用范围**：
-   - **项目级**（默认）：将 Skill 放入当前项目目录，仅对该项目生效（如 `.claude/skills/`、`.github/skills/`）
-   - **用户级**：将 Skill 放入全局目录，所有项目通用（如 `~/.claude/skills/`、`~/.agents/skills/`）
+   - **项目级**（默认）：将 Skill 放入当前项目目录，仅对该项目生效（放入 `.agents/skills/` 即可被大多数 Agent 识别）
+   - **用户级**：将 Skill 放入全局目录，所有项目通用（通常为 `~/.agents/skills/`）
 3. **目标 Agent**：需要在哪些 Agent 下使用？（可多选）
    - Claude Code
    - GitHub Copilot
    - OpenAI Codex
    - 其他（指定名称）
-3. **设计模式**：属于以下哪种模式？
+4. **设计模式**：属于以下哪种模式？
    - Tool Wrapper — 为特定技术/框架提供专家知识
    - Generator — 每次生成结构一致的文档/代码
    - Reviewer — 对代码/文档进行系统性检查评分
@@ -46,9 +46,9 @@ metadata:
    - Pipeline — 复杂多步骤任务，不允许跳步
    - 组合模式 — 以上多种的组合（标注组合方式）
    - 如果用户不确定，根据核心功能描述自动判断最合适的模式或组合，并向用户说明选择理由
-4. **技术领域**（可选）：涉及什么技术栈？如不限定特定技术，可留空，Skill 将保持技术无关
-5. **输出格式**：期望的产物格式？（如 markdown、json、checklist、代码文件）
-6. **辅助文件**：是否需要 references/、assets/、scripts/ 目录中的外部文件？
+5. **技术领域**（可选）：涉及什么技术栈？如不限定特定技术，可留空，Skill 将保持技术无关
+6. **输出格式**：期望的产物格式？（如 markdown、json、checklist、代码文件）
+7. **辅助文件**：是否需要 references/、assets/、scripts/ 目录中的外部文件？
 
 ⛔ 在以上信息全部明确前，禁止开始编写 SKILL.md。
 
@@ -206,25 +206,12 @@ metadata:
 
 ### 安装路径指引
 
-根据 Step 1 确定的范围和目标 Agent，输出对应的安装路径和命令：
+基于 Agent Skills 开放标准，请根据 Step 1 确定的适用范围，输出以下安装路径：
 
-| Agent | 项目级（放入当前项目） | 用户级（全局通用） |
-|-------|--------------------------|------------------|
-| Claude Code | `.claude/skills/<name>/` | `~/.claude/skills/<name>/` |
-| GitHub Copilot | `.github/skills/<name>/` | `~/.agents/skills/<name>/` |
-| OpenAI Codex | `.codex/skills/<name>/` | `~/.agents/skills/<name>/` |
+- **项目级**：统一存放到当前项目的 `.agents/skills/<name>/`
+- **用户级**：统一存放到全局的 `~/.agents/skills/<name>/`（若用户目标 Agent 包含 Claude Code，请提示其在用户级创建一份 symlink 指向 `~/.claude/skills/<name>`：`ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>`）
 
-**多 Agent 兼容策略（用 symlink，避免文件重复）：**
-
-- **用户级**：文件存放到 `~/.agents/skills/<name>/`，其他 Agent 目录用 symlink 指向它：
-  ```bash
-  ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>
-  ```
-- **项目级**：文件存放到当前项目的 `.agents/skills/<name>/`，其他 Agent 目录用 symlink 指向它：
-  ```bash
-  ln -s .agents/skills/<name> .github/skills/<name>
-  ln -s .agents/skills/<name> .claude/skills/<name>
-  ```
+> 提示：项目级统一放置于 `.agents/skills/` 即可被 Copilot, Claude 等所有兼容工具自动发现，无需复制。仅 Claude 的用户级加载需要 `~/.claude/` 历史规范目录。
 
 ### 输出摘要
 
