@@ -30,7 +30,14 @@ metadata:
 向用户确认以下信息（如用户未提供，逐条询问）：
 
 1. **核心功能**：这个 Skill 要做什么？（一句话描述）
-2. **适用范围**：项目级（仅当前项目生效）还是用户级（所有项目通用）？默认为项目级
+2. **适用范围**：
+   - **项目级**（默认）：将 Skill 放入当前项目目录，仅对该项目生效（如 `.claude/skills/`、`.github/skills/`）
+   - **用户级**：将 Skill 放入全局目录，所有项目通用（如 `~/.claude/skills/`、`~/.agents/skills/`）
+3. **目标 Agent**：需要在哪些 Agent 下使用？（可多选）
+   - Claude Code
+   - GitHub Copilot
+   - OpenAI Codex
+   - 其他（指定名称）
 3. **设计模式**：属于以下哪种模式？
    - Tool Wrapper — 为特定技术/框架提供专家知识
    - Generator — 每次生成结构一致的文档/代码
@@ -197,6 +204,28 @@ metadata:
 └── scripts/               ← 辅助脚本
 ```
 
+### 安装路径指引
+
+根据 Step 1 确定的范围和目标 Agent，输出对应的安装路径和命令：
+
+| Agent | 项目级（放入当前项目） | 用户级（全局通用） |
+|-------|--------------------------|------------------|
+| Claude Code | `.claude/skills/<name>/` | `~/.claude/skills/<name>/` |
+| GitHub Copilot | `.github/skills/<name>/` | `~/.agents/skills/<name>/` |
+| OpenAI Codex | `.codex/skills/<name>/` | `~/.agents/skills/<name>/` |
+
+**多 Agent 兼容策略（用 symlink，避免文件重复）：**
+
+- **用户级**：文件存放到 `~/.agents/skills/<name>/`，其他 Agent 目录用 symlink 指向它：
+  ```bash
+  ln -s ~/.agents/skills/<name> ~/.claude/skills/<name>
+  ```
+- **项目级**：文件存放到当前项目的 `.agents/skills/<name>/`，其他 Agent 目录用 symlink 指向它：
+  ```bash
+  ln -s .agents/skills/<name> .github/skills/<name>
+  ln -s .agents/skills/<name> .claude/skills/<name>
+  ```
+
 ### 输出摘要
 
 生成完成后，输出以下摘要表格：
@@ -205,7 +234,9 @@ metadata:
 |------|-----|
 | Skill 名称 | `<name>` |
 | 设计模式 | `<pattern>` |
-| 技术领域 | `<domain>` |
+| 适用范围 | 项目级 / 用户级 |
+| 目标 Agent | `<agent(s)>` |
+| 技术领域 | `<domain 或 通用>` |
 | SKILL.md 行数 | `<N>` 行 |
 | 辅助文件数 | `<N>` 个 |
 | 自检结果 | ✅ 全部通过 / ⚠️ 需注意 |
