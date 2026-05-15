@@ -18,6 +18,17 @@
 
 ---
 
+## Agent Skill 读取规则
+
+| Agent | 项目级路径 | 用户级路径 |
+| --- | --- | --- |
+| Codex | `.agents/skills/` | `~/.agents/skills/` |
+| Gemini | `.agents/skills/` | `~/.agents/skills/` |
+| Copilot | `.agents/skills/` | `~/.agents/skills/` |
+| Claude | `.claude/skills/` | `~/.claude/skills/` |
+
+---
+
 ## 安装
 
 ### 方式一：使用 npx skills CLI（推荐）

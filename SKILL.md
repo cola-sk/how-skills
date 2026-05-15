@@ -31,7 +31,7 @@ metadata:
 
 1. **核心功能**：这个 Skill 要做什么？（一句话描述）
 2. **适用范围**：
-   - **项目级**（默认）：将 Skill 放入当前项目目录，仅对该项目生效（放入 `.agents/skills/` 即可被大多数 Agent 识别）
+   - **项目级**（默认）：将 Skill 放入当前项目目录，仅对该项目生效（通常放入 `.agents/skills/` 即可被大多数 Agent 识别，Claude 则是放置在 `.claude/` 目录下）
    - **用户级**：将 Skill 放入全局目录，所有项目通用（通常为 `~/.agents/skills/`）
 3. **目标 Agent**：需要在哪些 Agent 下使用？（可多选）
    - Claude Code
